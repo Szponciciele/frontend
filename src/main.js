@@ -535,39 +535,87 @@ function populateAsteroidDetails(neo) {
     const impactEffects = document.getElementById('impactEffectsDetails');
     
     if (title) title.textContent = neo.name;
-    
-    // Populate essential stats
-    if (essentialStats) {
-        essentialStats.innerHTML = `
-            <span class="text-white text-sm">${neo.name} is a near-Earth object.</span>
-            <span class="text-xs text-gray-400 mt-2">Diameter: ${neo.estimated_diameter ? neo.estimated_diameter.toFixed(2) + ' km' : 'N/A'}</span>
-            <span class="text-xs text-gray-400">Full name: ${neo.name}</span>
-            <span class="text-xs text-gray-400">Is potentially hazardous: ${neo.is_potentially_hazardous ? 'True' : 'False'}</span>
-            <span class="text-xs text-gray-400">Closest approach: ${neo.approach_date ? new Date(neo.approach_date).toLocaleString() : 'N/A'}</span>
-            <span class="text-xs text-gray-400">Miss distance: ${neo.miss_distance ? (neo.miss_distance / 1000).toFixed(2) + ' km' : 'N/A'}</span>
-        `;
+  // Helper to access common alternate property names
+  const get = (obj, ...keys) => {
+    for (const k of keys) {
+      if (obj == null) continue;
+      if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] != null) return obj[k];
     }
-    
-    // Populate orbital stats
-    if (orbitalStats) {
-        orbitalStats.innerHTML = `
-            <span class="text-xs text-gray-400">Eccentricity (e): ${neo.eccentricity || 'N/A'}</span>
-            <span class="text-xs text-gray-400">Semi-major axis (a): ${neo.semiMajorAxis || 'N/A'} AU</span>
-            <span class="text-xs text-gray-400">Inclination (i): ${neo.inclination || 'N/A'}°</span>
-            <span class="text-xs text-gray-400">Orbital period: ${neo.orbitalPeriod || 'N/A'} days</span>
-        `;
+    return null;
+  };
+
+  // Core values (try multiple possible property names)
+  const name = get(neo, 'name', 'full_name') || 'Unknown';
+  const info = get(neo, 'info', 'description') || '';
+  const estDiameter = get(neo, 'estimated_diameter', 'diameter', 'radius') || null; // km
+  const radiusField = get(neo, 'radius');
+  const diameterKm = estDiameter ? (estDiameter && estDiameter > 1 ? estDiameter : estDiameter) : (radiusField ? radiusField * 2 : null);
+  const approachMs = get(neo, 'approach_date', 'close_approach_date', 'approachDate') || null;
+  const approachDate = approachMs ? new Date(approachMs) : null;
+  const miss = get(neo, 'miss_distance', 'missDistance', 'miss') || null; // assume meters if large
+  const missKm = miss != null ? (Number(miss) > 1e6 ? Number(miss) / 1000 : Number(miss) / 1000) : null;
+  const relVel = get(neo, 'relative_velocity', 'relativeVelocity', 'velocity') || null; // km/s
+  const hazardous = get(neo, 'is_potentially_hazardous', 'hazardous') ? true : false;
+
+  // Orbital elements
+  const a = get(neo, 'semiMajorAxis', 'a', 'semi_major_axis') || null; // AU
+  const e = get(neo, 'eccentricity', 'e') || null;
+  const inc = get(neo, 'inclination', 'i') || null;
+  const lonAsc = get(neo, 'longitudeOfAscendingNode', 'longitude_of_ascending_node', 'raan') || null;
+  const argPer = get(neo, 'argumentOfPeriapsis', 'argument_of_periapsis', 'argPeri') || null;
+  const M = get(neo, 'meanAnomaly', 'mean_anomaly', 'M') || null;
+
+  // Derived orbital values
+  let orbitalPeriodYears = null, orbitalPeriodDays = null, meanMotionDegPerDay = null, perihelion = null, aphelion = null;
+  if (a != null && !isNaN(a)) {
+    orbitalPeriodYears = Math.sqrt(Math.pow(Number(a), 3));
+    orbitalPeriodDays = orbitalPeriodYears * 365.25;
+    meanMotionDegPerDay = orbitalPeriodDays ? (360 / orbitalPeriodDays) : null;
+    if (e != null && !isNaN(e)) {
+      perihelion = Number(a) * (1 - Number(e));
+      aphelion = Number(a) * (1 + Number(e));
     }
-    
-    // Populate impact effects
-    if (impactEffects) {
-        impactEffects.innerHTML = `
-            <span class="text-xs text-gray-400">Miss distance: ${neo.miss_distance ? (neo.miss_distance / 1000).toFixed(2) + ' km' : 'N/A'}</span>
-            <span class="text-xs text-gray-400">Relative velocity: ${neo.relative_velocity ? neo.relative_velocity.toFixed(2) + ' km/s' : 'N/A'}</span>
-            <button onClick="viewImpactMap(${neo.id})" class="mt-4 text-white hover:underline underline-offset-8 px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer">
-              View Impact Map
-            </button>
-        `;
-    }
+  }
+
+  // Populate essential stats
+  if (essentialStats) {
+    essentialStats.innerHTML = `
+      <span class="text-white text-sm">${name} ${info ? '- ' + String(info).slice(0, 180) : ''}</span>
+      <span class="text-xs text-gray-400 mt-2">Diameter: ${diameterKm ? Number(diameterKm).toFixed(3) + ' km' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Radius (JSON): ${radiusField != null ? String(radiusField) : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Is potentially hazardous: ${hazardous ? 'True' : 'False'}</span>
+      <span class="text-xs text-gray-400">Closest approach: ${approachDate ? approachDate.toLocaleString() : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Miss distance: ${missKm ? Number(missKm).toFixed(3) + ' km' : 'N/A'}</span>
+    `;
+  }
+
+  // Populate orbital stats
+  if (orbitalStats) {
+    orbitalStats.innerHTML = `
+      <span class="text-xs text-gray-400">Eccentricity (e): ${e != null ? Number(e).toFixed(6) : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Semi-major axis (a): ${a != null ? Number(a).toFixed(6) + ' AU' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Perihelion (q): ${perihelion != null ? Number(perihelion).toFixed(6) + ' AU' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Aphelion (Q): ${aphelion != null ? Number(aphelion).toFixed(6) + ' AU' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Inclination (i): ${inc != null ? Number(inc).toFixed(3) + '°' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Longitude of ascending node (Ω): ${lonAsc != null ? Number(lonAsc).toFixed(3) + '°' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Argument of perihelion (ω): ${argPer != null ? Number(argPer).toFixed(3) + '°' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Mean anomaly (M): ${M != null ? Number(M).toFixed(3) + '°' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Orbital period: ${orbitalPeriodDays != null ? Number(orbitalPeriodDays).toFixed(2) + ' d (' + Number(orbitalPeriodYears).toFixed(3) + ' yr)' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Mean motion: ${meanMotionDegPerDay != null ? Number(meanMotionDegPerDay).toFixed(6) + '°/d' : 'N/A'}</span>
+    `;
+  }
+
+  // Populate impact effects / extra info
+  if (impactEffects) {
+    impactEffects.innerHTML = `
+      <span class="text-xs text-gray-400">Miss distance: ${missKm ? Number(missKm).toFixed(3) + ' km' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Relative velocity: ${relVel != null ? Number(relVel).toFixed(3) + ' km/s' : 'N/A'}</span>
+      <span class="text-xs text-gray-400">Additional info: ${info ? String(info) : 'N/A'}</span>
+      <div class="mt-3">
+        <button onClick="viewImpactMap(${neo.id || 'null'})" class="mt-2 text-white hover:underline underline-offset-8 px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer">View Impact Map</button>
+      </div>
+    `;
+  }
 }
 
 // --- SEARCH MODAL FUNCTIONALITY ---

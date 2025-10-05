@@ -59,11 +59,6 @@
                             <div class="absolute top-[-26px] left-0 text-white text-sm">1x</div>
                             <div id="timeRatioText" class="absolute top-[-26px] left-1/2 -translate-x-1/2 text-sm text-gray-400">1 hours/second</div>
                             <div class="absolute top-[-26px] right-0 text-white text-sm">1000x</div>
-                            <div class="absolute bottom-[-18px] left-1/2 -translate-x-1/2 z-10">
-                                <svg id="timeThumb" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-clock-fill cursor-grab" viewBox="0 0 16 16" role="slider" aria-label="Time slider thumb" tabindex="0">
-                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
-                                </svg>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -158,12 +153,26 @@
                         <h3 class="text-lg font-semibold">Date Range</h3>
                         <div class="flex flex-row gap-4">
                         <div id="startDateSelector" class="flex flex-col w-1/2">
-                            <label for="startDate" class="text-sm text-gray-400">Start Date</label>
-                            <input type="date" id="startDate" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                            <label for="startDate" class="text-sm text-gray-400 flex items-center space-x-2">
+                                <span>Start Date</span>
+                            </label>
+                            <div class="relative mt-1">
+                                <input type="date" id="startDate" class="w-full p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-9" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h.5A1.5 1.5 0 0 1 15 2.5v11A1.5 1.5 0 0 1 13.5 15h-11A1.5 1.5 0 0 1 1 13.5v-11A1.5 1.5 0 0 1 2.5 1H3V.5a.5.5 0 0 1 .5-.5zM2 4v9.5C2 13.775 2.225 14 2.5 14h11c.275 0 .5-.225.5-.5V4H2z"/>
+                                </svg>
+                            </div>
                         </div>
                         <div id="endDateSelector" class="flex flex-col w-1/2">
-                            <label for="endDate" class="text-sm text-gray-400">End Date</label>
-                            <input type="date" id="endDate" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                            <label for="endDate" class="text-sm text-gray-400 flex items-center space-x-2">
+                                <span>End Date</span>
+                            </label>
+                            <div class="relative mt-1">
+                                <input type="date" id="endDate" class="w-full p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-9" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h.5A1.5 1.5 0 0 1 15 2.5v11A1.5 1.5 0 0 1 13.5 15h-11A1.5 1.5 0 0 1 1 13.5v-11A1.5 1.5 0 0 1 2.5 1H3V.5a.5.5 0 0 1 .5-.5zM2 4v9.5C2 13.775 2.225 14 2.5 14h11c.275 0 .5-.225.5-.5V4H2z"/>
+                                </svg>
+                            </div>
                         </div>
                         </div>
                     </div>
