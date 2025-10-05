@@ -171,6 +171,20 @@ closeAsteroidDetailsBtn.addEventListener("click", () => {
   }
 });
 
+// Map modal and Leaflet instance (declare here so displayMap can use them safely)
+const mapModal = document.getElementById('mapModal');
+const closeMapModal = document.getElementById('closeMapModal');
+let osmMap = null; // will hold Leaflet map instance once initialized
+
+if (closeMapModal) {
+  closeMapModal.addEventListener('click', () => {
+    if (mapModal) {
+      mapModal.classList.add('hidden');
+      mapModal.classList.remove('flex');
+    }
+  });
+}
+
 const approachesBtn = document.getElementById("approaches");
 const approachesModal = document.getElementById("approachesModal");
 const closeApproachesModal = document.getElementById("closeApproachesModal");
