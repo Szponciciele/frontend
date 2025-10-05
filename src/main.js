@@ -27,79 +27,6 @@ function sliderRawToSVal(raw) {
   return Math.exp(Math.log(sMin) + pct * (Math.log(sMax) - Math.log(sMin)));
 }
 
-// Control points for custom mapping: slider sVal -> timeScale t
-const controlPoints = [
-  { s: 0.001, t: 1 },
-  { s: 1, t: 500 },
-  { s: 1000, t: 1000 }
-];
-
-function sliderToTimeScale(s) {
-  const pts = controlPoints.slice().sort((a, b) => a.s - b.s);
-  if (s <= pts[0].s) return pts[0].t;
-  if (s >= pts[pts.length - 1].s) return pts[pts.length - 1].t;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i];
-    const b = pts[i + 1];
-    if (s >= a.s && s <= b.s) {
-      const logS = Math.log(s);
-      const logA = Math.log(a.s);
-      const logB = Math.log(b.s);
-      const frac = (logS - logA) / (logB - logA);
-      const logTa = Math.log(a.t);
-      const logTb = Math.log(b.t);
-      const logT = logTa + frac * (logTb - logTa);
-      return Math.exp(logT);
-    }
-  }
-  return 1.0;
-}
-
-if (timeSlider) {
-  // Initialize label: compute from slider value via mapping
-  const rawInit = parseFloat(timeSlider.value);
-  const sInit = sliderRawToSVal(rawInit);
-  timeScale = sliderToTimeScale(sInit);
-  const stepInit = parseFloat(timeSlider.step) || 1;
-  const decimalsInit = Math.max(0, Math.ceil(-Math.log10(stepInit)));
-  const formattedInit = Number(timeScale).toFixed(Math.min(6, decimalsInit));
-  timeMultiplierLabel && (timeMultiplierLabel.textContent = `${formattedInit}x`);
-  timeRatioText && (timeRatioText.textContent = `Time ratio: ${formattedInit} hours/second`);
-
-  timeSlider.addEventListener('input', (e) => {
-    const raw = parseFloat(e.target.value);
-    const sVal = sliderRawToSVal(raw);
-    timeScale = sliderToTimeScale(sVal);
-    const step = parseFloat(timeSlider.step) || 1;
-    const decimals = Math.max(0, Math.ceil(-Math.log10(step)));
-    const formatted = Number(timeScale).toFixed(Math.min(6, decimals));
-    if (timeMultiplierLabel) timeMultiplierLabel.textContent = `${formatted}x`;
-    if (timeRatioText) timeRatioText.textContent = `Time ratio: ${formatted} hours/second`;
-    // Update SVG thumb position when slider changes
-    updateThumbPositionFromSlider();
-  });
-}
-
-// Helper to position the SVG thumb over the slider track based on current value
-function updateThumbPositionFromSlider() {
-  if (!timeSlider || !timeThumb) return;
-  const rect = timeSlider.getBoundingClientRect();
-  const min = parseFloat(timeSlider.min) || 0.01;
-  const max = parseFloat(timeSlider.max) || 100;
-  const value = parseFloat(timeSlider.value) || 1;
-  // Use logarithmic mapping so 1x appears near center visually
-  const logMin = Math.log(min);
-  const logMax = Math.log(max);
-  const logVal = Math.log(value);
-  const pct = (logVal - logMin) / (logMax - logMin);
-  // Compute thumb center X in pixels
-  const x = rect.left + pct * rect.width;
-  // Position the thumb element (it's absolutely positioned inside the same container)
-  timeThumb.style.position = 'fixed';
-  timeThumb.style.left = `${x - timeThumb.getBoundingClientRect().width / 2}px`;
-  timeThumb.style.top = `${rect.top - timeThumb.getBoundingClientRect().height / 2}px`;
-}
-
 // Track dragging state
 let dragging = false;
 
@@ -407,6 +334,81 @@ function filterNEOs(neos) {
     });
 }
 
+function displayMap(neoId) {
+  console.log("XXXX")
+
+  mapModal.classList.remove("hidden");
+  mapModal.classList.add("flex");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      try {
+        if (!osmMap) {
+          osmMap = L.map("mapContainer", {
+            center: [0, 0],
+
+            zoom: 3,
+
+            attributionControl: true,
+          });
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+
+            maxZoom: 19,
+          }).addTo(osmMap);
+
+          const impactSite = [0, 0]; // Placeholder; could be dynamic lat/lon
+
+          L.marker(impactSite)
+            .addTo(osmMap)
+            .bindPopup("Simulated Impact Site")
+            .openPopup();
+          L.circle(impactSite, {
+            color: "red",
+            fillColor: "#f03",
+            fillOpacity: 0.3,
+            radius: 90000, // Crater (~90 km)
+          })
+            .addTo(osmMap)
+            .bindPopup("Crater Radius (~90 km)");
+          L.circle(impactSite, {
+            color: "orange",
+            fillColor: "#ff9900",
+            fillOpacity: 0.2,
+            radius: 220000, // Fireball (~220 km)
+          })
+            .addTo(osmMap)
+            .bindPopup("Fireball Radius (~220 km)");
+          L.circle(impactSite, {
+            color: "brown",
+            fillColor: "#8b4513",
+            fillOpacity: 0.1,
+            radius: 4400000, // Ejecta (~4400 km)
+          })
+            .addTo(osmMap)
+            .bindPopup("Ejecta Radius (~4400 km)");
+          L.circle(impactSite, {
+            color: "blue",
+            fillColor: "#0000ff",
+            fillOpacity: 0.1,
+            radius: 5000000, // Tsunami (~5000 km, approximate affected zone)
+          })
+            .addTo(osmMap)
+            .bindPopup("Tsunami Affected Radius (~5000 km)");
+          setTimeout(() => {
+            if (osmMap) osmMap.invalidateSize();
+          }, 100);
+        } else {
+          osmMap.invalidateSize();
+        }
+      } catch (error) {
+        console.error("Leaflet init error:", error);
+      }
+    });
+  });
+}
+
 // Apply filters to search results
 function applyFiltersToSearchResults() {
     if (!searchResults) return;
@@ -632,10 +634,24 @@ function populateAsteroidDetails(neo) {
       <span class="text-xs text-gray-400">Miss distance: ${missKm ? Number(missKm).toFixed(3) + ' km' : 'N/A'}</span>
       <span class="text-xs text-gray-400">Relative velocity: ${relVel != null ? Number(relVel).toFixed(3) + ' km/s' : 'N/A'}</span>
       <span class="text-xs text-gray-400">Additional info: ${info ? String(info) : 'N/A'}</span>
-      <div class="flex justify-center mt-3">
-        <button onClick="viewImpactMap(${neo.id || 'null'})" class="mt-2 text-white hover:underline underline-offset-8 px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer">View Impact Map</button>
-      </div>
+      <div class="flex justify-center mt-3 impact-map-button-container"></div>
     `;
+
+    // Attach the button programmatically to avoid inline JS
+    try {
+      const btnContainer = impactEffects.querySelector('.impact-map-button-container');
+      if (btnContainer) {
+        const btn = document.createElement('button');
+        btn.className = 'mt-2 text-white hover:underline underline-offset-8 px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer';
+        btn.textContent = 'View Impact Map';
+        btn.addEventListener('click', () => {
+          try { displayMap(neo.id ?? null); } catch (err) { console.error('displayMap error:', err); }
+        });
+        btnContainer.appendChild(btn);
+      }
+    } catch (err) {
+      console.error('Failed to attach impact map button:', err);
+    }
   }
 }
 
