@@ -16,6 +16,12 @@
                 <p class="text-gray-400 text-lg font-bold tracking-wider hover:cursor-default">Impact Effects Simulator</p>
             </div>
             <div class="flex items-center space-x-12 pointer-events-auto font-semibold text-gray-400 bg-black/40 backdrop-blur-sm rounded-md px-6 py-3">
+                <div id="about" class="flex flex-row items-center space-x-2 hover:text-white hover:cursor-pointer transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/>
+                    </svg>
+                    <p>About</p>
+                </div>
                 <div id="approaches" class="flex flex-row items-center space-x-2 hover:text-white hover:cursor-pointer transition-colors duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-rocket-takeoff-fill" viewBox="0 0 16 16">
                         <path d="M12.17 9.53c2.307-2.592 3.278-4.684 3.641-6.218.21-.887.214-1.58.16-2.065a3.6 3.6 0 0 0-.108-.563 2 2 0 0 0-.078-.23V.453c-.073-.164-.168-.234-.352-.295a2 2 0 0 0-.16-.045 4 4 0 0 0-.57-.093c-.49-.044-1.19-.03-2.08.188-1.536.374-3.618 1.343-6.161 3.604l-2.4.238h-.006a2.55 2.55 0 0 0-1.524.734L.15 7.17a.512.512 0 0 0 .433.868l1.896-.271c.28-.04.592.013.955.132.232.076.437.16.655.248l.203.083c.196.816.66 1.58 1.275 2.195.613.614 1.376 1.08 2.191 1.277l.082.202c.089.218.173.424.249.657.118.363.172.676.132.956l-.271 1.9a.512.512 0 0 0 .867.433l2.382-2.386c.41-.41.668-.949.732-1.526zm.11-3.699c-.797.8-1.93.961-2.528.362-.598-.6-.436-1.733.361-2.532.798-.799 1.93-.96 2.528-.361s.437 1.732-.36 2.531Z"/>
@@ -47,23 +53,23 @@
                         <p id="date" class="text-xl font-mono font-bold uppercase">MMM DD, YYYY</p>
                         <p id="time" class="text-gray-300 font-mono font-semibold tracking-wider">HH:MM:SS</p>
                     </div>
-                    <div class="relative flex flex-row items-center mt-2">
-                        <div class="bg-gradient-to-r from-gray-800 to-white h-[4px] w-full rounded-md"></div>
-                        <div class="absolute top-[-25px] left-0 text-white text-sm">0.01x</div>
-                        <div class="absolute bottom-[-8px] left-1/2 -translate-x-1/2 z-10">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
-                            </svg>
+                    <div class="relative flex flex-col items-center mt-4 w-[20vw]">
+                        <div class="relative w-full">
+                            <input id="timeSlider" type="range" min="1" max="1000" step="1" value="1" class="w-full h-2 bg-gray-700 rounded-md appearance-none" />
+                            <div class="absolute top-[-26px] left-0 text-white text-sm">1x</div>
+                            <div id="timeRatioText" class="absolute top-[-26px] left-1/2 -translate-x-1/2 text-sm text-gray-400">1 hours/second</div>
+                            <div class="absolute top-[-26px] right-0 text-white text-sm">1000x</div>
+                            <div class="absolute bottom-[-18px] left-1/2 -translate-x-1/2 z-10">
+                                <svg id="timeThumb" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-clock-fill cursor-grab" viewBox="0 0 16 16" role="slider" aria-label="Time slider thumb" tabindex="0">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+                                </svg>
+                            </div>
                         </div>
-                        <div class="absolute top-[-25px] right-0 text-white text-sm">100x</div>
-                    </div>
-                    <div class="flex justify-center">
-                        <p class="text-sm text-gray-400">Time ratio: 1 second/second</p>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="asteroidDetails" class="absolute hidden top-1/2 -translate-y-1/2 left-8 z-30 bg-gray backdrop-blur-xl border border-gray-600 rounded-xl px-8 py-6">
+    <div id="asteroidDetails" class="absolute hidden top-1/2 -translate-y-1/2 left-8 z-30 bg-black/40 backdrop-blur-xl rounded-xl px-8 py-6 max-w-[440px]">
             <div class="flex flex-col space-y-5">
                 <div class="flex flex-row justify-between items-center space-x-12">
                     <h2 class="text-2xl font-mono font-bold tracking-wide">433 Eros</h2>
@@ -78,7 +84,7 @@
                     <p id="orbitalStats" class="text-sm text-gray-300 hover:cursor-pointer transition-colors duration-300">Orbital Stats</p>
                     <p id="impactEffects" class="text-sm text-gray-300 hover:cursor-pointer transition-colors duration-300">Impact Effects</p>
                 </div>
-                <div id="essentialStatsDetails" class="flex flex-col space-y-1 mt-2 max-w-[23.75vw]">
+                <div id="essentialStatsDetails" class="flex flex-col space-y-1 mt-2">
                     <span class="text-white text-sm">Eros 433 is the first discovered near-Earth asteroid and the second-largest NEO. It was discovered in 1898 and was the first asteroid to be orbited by a spacecraft (NEAR Shoemaker in 2000).</span>
                     <span class="text-xs text-gray-400 mt-2">Diameter: 16.84 km</span>
                     <span class="text-xs text-gray-400">Full name: 433 Eros (A898 PA)</span>
@@ -86,7 +92,7 @@
                     <span class="text-xs text-gray-400">Closest approach: Nov 30 2025 02:18</span>
                     <span class="text-xs text-gray-400">Miss distance: 0.00027 AU</span>
                 </div>
-                <div id="orbitalStatsDetails" class="flex flex-col space-y-1 mt-2 hidden">
+                <div id="orbitalStatsDetails" class="hidden flex flex-col space-y-1 mt-2">
                     <span class="text-xs text-gray-400">Eccentricity (e): 0.2228</span>
                     <span class="text-xs text-gray-400">Semi-major axis (a): 1.4581 AU</span>
                     <span class="text-xs text-gray-400">Perihelion distance (q): 1.1332 AU</span>
@@ -99,10 +105,7 @@
                     <span class="text-xs text-gray-400">Mean motion (n): 0.5598°/d</span>
                     <span class="text-xs text-gray-400">Aphelion distance (Q): 1.7830 AU</span>
                 </div>
-                <div id="impactEffectsDetails" class="flex flex-col space-y-1 mt-2 hidden">
-                    <button id="mapButton" class="bg-neutral-950 text-white px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer">
-                            View Impact Map
-                    </button>
+                <div id="impactEffectsDetails" class="hidden flex flex-col space-y-1 mt-2">
                 </div>
                 <div class="flex flex-row items-center justify-center space-x-4 mt-6">
                     <span id="essentialStatsDot" class="bg-white rounded-full size-3"></span>
@@ -140,71 +143,62 @@
                 </div>
             </div>
         </div>
-<div id="filtersModal" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
-        <div class="bg-black/60 backdrop-blur-md border border-gray-600 rounded-xl p-8 w-[40rem] max-w-[90%] shadow-2xl text-gray-200">
-            <div class="flex flex-col space-y-6">
-            <!-- Header -->
-            <div class="flex flex-row justify-between items-center">
-                <h2 class="text-2xl font-bold tracking-wide">Filters</h2>
-                <button id="closeFiltersModal" class="text-gray-400 hover:text-white hover:cursor-pointer transition-all duration-300 hover:scale-110">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
-                </svg>
-                </button>
+        <div id="filtersModal" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
+            <div class="bg-black/60 backdrop-blur-md border border-gray-600 rounded-xl p-8 w-[40rem] max-w-[90%] shadow-2xl text-gray-200">
+                <div class="flex flex-col space-y-6">
+                    <div class="flex flex-row justify-between items-center">
+                        <h2 class="text-2xl font-bold tracking-wide">Filters</h2>
+                        <button id="closeFiltersModal" class="text-gray-400 hover:text-white hover:cursor-pointer transition-all duration-300 hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                        </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-semibold">Date Range</h3>
+                        <div class="flex flex-row gap-4">
+                        <div id="startDateSelector" class="flex flex-col w-1/2">
+                            <label for="startDate" class="text-sm text-gray-400">Start Date</label>
+                            <input type="date" id="startDate" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+                        <div id="endDateSelector" class="flex flex-col w-1/2">
+                            <label for="endDate" class="text-sm text-gray-400">End Date</label>
+                            <input type="date" id="endDate" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-semibold">Radius (km)</h3>
+                        <div class="flex flex-row gap-4">
+                        <div class="flex flex-col w-1/2">
+                            <label for="minRadius" class="text-sm text-gray-400">Min Radius</label>
+                            <input type="number" id="minRadius" placeholder="e.g. 10" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+                        <div class="flex flex-col w-1/2">
+                            <label for="maxRadius" class="text-sm text-gray-400">Max Radius</label>
+                            <input type="number" id="maxRadius" placeholder="e.g. 1000" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-semibold">Miss Distance (km)</h3>
+                        <div class="flex flex-row gap-4">
+                        <div class="flex flex-col w-1/2">
+                            <label for="minMissDistance" class="text-sm text-gray-400">Min Distance</label>
+                            <input type="number" id="minMissDistance" placeholder="e.g. 10000" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+                        <div class="flex flex-col w-1/2">
+                            <label for="maxMissDistance" class="text-sm text-gray-400">Max Distance</label>
+                            <input type="number" id="maxMissDistance" placeholder="e.g. 1000000" class="mt-1 p-2 rounded-md bbg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-4 pt-4">
+                        <button id="clearFilters" class="px-4 py-2 rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-700 transition-all duration-300">Clear</button>
+                        <button id="applyFilters" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-all duration-300">Apply</button>
+                    </div>
+                </div>
             </div>
-
-            <!-- Date Range -->
-            <div class="space-y-3">
-                <h3 class="text-lg font-semibold">Date Range</h3>
-                <div class="flex flex-row gap-4">
-                <div class="flex flex-col w-1/2">
-                    <label for="startDate" class="text-sm text-gray-400">Start Date</label>
-                    <input type="date" id="startDate" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <div class="flex flex-col w-1/2">
-                    <label for="endDate" class="text-sm text-gray-400">End Date</label>
-                    <input type="date" id="endDate" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                </div>
-            </div>
-
-            <!-- Radius Filter -->
-            <div class="space-y-3">
-                <h3 class="text-lg font-semibold">Radius (km)</h3>
-                <div class="flex flex-row gap-4">
-                <div class="flex flex-col w-1/2">
-                    <label for="minRadius" class="text-sm text-gray-400">Min Radius</label>
-                    <input type="number" id="minRadius" placeholder="e.g. 10" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <div class="flex flex-col w-1/2">
-                    <label for="maxRadius" class="text-sm text-gray-400">Max Radius</label>
-                    <input type="number" id="maxRadius" placeholder="e.g. 1000" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                </div>
-            </div>
-
-            <!-- Miss Distance Filter -->
-            <div class="space-y-3">
-                <h3 class="text-lg font-semibold">Miss Distance (km)</h3>
-                <div class="flex flex-row gap-4">
-                <div class="flex flex-col w-1/2">
-                    <label for="minMissDistance" class="text-sm text-gray-400">Min Distance</label>
-                    <input type="number" id="minMissDistance" placeholder="e.g. 10000" class="mt-1 p-2 rounded-md bg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <div class="flex flex-col w-1/2">
-                    <label for="maxMissDistance" class="text-sm text-gray-400">Max Distance</label>
-                    <input type="number" id="maxMissDistance" placeholder="e.g. 1000000" class="mt-1 p-2 rounded-md bbg-transparent border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex justify-end space-x-4 pt-4">
-                <button id="clearFilters" class="px-4 py-2 rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-700 transition-all duration-300">Clear</button>
-                <button id="applyFilters" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-all duration-300">Apply</button>
-            </div>
-            </div>
-        </div>
         </div>
         <div id="filtersModal" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
             <div class="bg-black/60 backdrop-blur-md border border-gray-600 rounded-xl p-8 w-[40rem] max-w-[90%] shadow-2xl text-gray-200">

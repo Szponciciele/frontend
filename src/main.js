@@ -5,6 +5,180 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 const dateElement = document.getElementById("date");
 const timeElement = document.getElementById("time");
 
+// Time slider elements
+const timeSlider = document.getElementById('timeSlider');
+const timeMultiplierLabel = document.getElementById('timeMultiplierLabel');
+const timeRatioText = document.getElementById('timeRatioText');
+const timeThumb = document.getElementById('timeThumb');
+
+// Default time scale (1x)
+let timeScale = 1.0;
+// Simulated clock (advances according to timeScale)
+let simTime = new Date();
+
+// Map raw slider value (in slider domain) to sVal in [0.001, 1000] using log interpolation
+function sliderRawToSVal(raw) {
+  if (!timeSlider) return raw;
+  const minRaw = parseFloat(timeSlider.min) || 1;
+  const maxRaw = parseFloat(timeSlider.max) || 1000;
+  const pct = (raw - minRaw) / (maxRaw - minRaw);
+  const sMin = 0.001;
+  const sMax = 1000;
+  return Math.exp(Math.log(sMin) + pct * (Math.log(sMax) - Math.log(sMin)));
+}
+
+// Control points for custom mapping: slider sVal -> timeScale t
+const controlPoints = [
+  { s: 0.001, t: 1 },
+  { s: 1, t: 500 },
+  { s: 1000, t: 1000 }
+];
+
+function sliderToTimeScale(s) {
+  const pts = controlPoints.slice().sort((a, b) => a.s - b.s);
+  if (s <= pts[0].s) return pts[0].t;
+  if (s >= pts[pts.length - 1].s) return pts[pts.length - 1].t;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    if (s >= a.s && s <= b.s) {
+      const logS = Math.log(s);
+      const logA = Math.log(a.s);
+      const logB = Math.log(b.s);
+      const frac = (logS - logA) / (logB - logA);
+      const logTa = Math.log(a.t);
+      const logTb = Math.log(b.t);
+      const logT = logTa + frac * (logTb - logTa);
+      return Math.exp(logT);
+    }
+  }
+  return 1.0;
+}
+
+if (timeSlider) {
+  // Initialize label: compute from slider value via mapping
+  const rawInit = parseFloat(timeSlider.value);
+  const sInit = sliderRawToSVal(rawInit);
+  timeScale = sliderToTimeScale(sInit);
+  const stepInit = parseFloat(timeSlider.step) || 1;
+  const decimalsInit = Math.max(0, Math.ceil(-Math.log10(stepInit)));
+  const formattedInit = Number(timeScale).toFixed(Math.min(6, decimalsInit));
+  timeMultiplierLabel && (timeMultiplierLabel.textContent = `${formattedInit}x`);
+  timeRatioText && (timeRatioText.textContent = `Time ratio: ${formattedInit} hours/second`);
+
+  timeSlider.addEventListener('input', (e) => {
+    const raw = parseFloat(e.target.value);
+    const sVal = sliderRawToSVal(raw);
+    timeScale = sliderToTimeScale(sVal);
+    const step = parseFloat(timeSlider.step) || 1;
+    const decimals = Math.max(0, Math.ceil(-Math.log10(step)));
+    const formatted = Number(timeScale).toFixed(Math.min(6, decimals));
+    if (timeMultiplierLabel) timeMultiplierLabel.textContent = `${formatted}x`;
+    if (timeRatioText) timeRatioText.textContent = `Time ratio: ${formatted} hours/second`;
+    // Update SVG thumb position when slider changes
+    updateThumbPositionFromSlider();
+  });
+}
+
+// Helper to position the SVG thumb over the slider track based on current value
+function updateThumbPositionFromSlider() {
+  if (!timeSlider || !timeThumb) return;
+  const rect = timeSlider.getBoundingClientRect();
+  const min = parseFloat(timeSlider.min) || 0.01;
+  const max = parseFloat(timeSlider.max) || 100;
+  const value = parseFloat(timeSlider.value) || 1;
+  // Use logarithmic mapping so 1x appears near center visually
+  const logMin = Math.log(min);
+  const logMax = Math.log(max);
+  const logVal = Math.log(value);
+  const pct = (logVal - logMin) / (logMax - logMin);
+  // Compute thumb center X in pixels
+  const x = rect.left + pct * rect.width;
+  // Position the thumb element (it's absolutely positioned inside the same container)
+  timeThumb.style.position = 'fixed';
+  timeThumb.style.left = `${x - timeThumb.getBoundingClientRect().width / 2}px`;
+  timeThumb.style.top = `${rect.top - timeThumb.getBoundingClientRect().height / 2}px`;
+}
+
+// Track dragging state
+let dragging = false;
+
+if (timeThumb && timeSlider) {
+  // Make the thumb focusable and draggable
+  timeThumb.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    timeThumb.setPointerCapture(e.pointerId);
+    timeThumb.classList.remove('cursor-grab');
+    timeThumb.classList.add('cursor-grabbing');
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    syncSliderWithPointer(e.clientX);
+  });
+
+  window.addEventListener('pointerup', (e) => {
+    if (!dragging) return;
+    dragging = false;
+    try { timeThumb.releasePointerCapture && timeThumb.releasePointerCapture(e.pointerId); } catch (err) {}
+    timeThumb.classList.remove('cursor-grabbing');
+    timeThumb.classList.add('cursor-grab');
+  });
+
+  // Clicking/tapping the track should move the thumb
+  const sliderContainer = timeSlider.parentElement;
+  if (sliderContainer) {
+    sliderContainer.addEventListener('pointerdown', (e) => {
+      // if the click is on the thumb itself, let pointerdown on thumb handle it
+      if (e.target === timeThumb) return;
+      syncSliderWithPointer(e.clientX);
+    });
+  }
+
+  // Keep thumb positioned on resize
+  window.addEventListener('resize', () => {
+    updateThumbPositionFromSlider();
+  });
+  // initial positioning: retry until layout gives a usable width so the thumb lands correctly
+  function tryPosition(retries = 0) {
+    if (!timeSlider) return;
+    const rect = timeSlider.getBoundingClientRect();
+    if (rect.width > 8 || retries > 10) {
+      // position immediately and also nudge via RAF to ensure stable placement
+      updateThumbPositionFromSlider();
+      requestAnimationFrame(() => requestAnimationFrame(updateThumbPositionFromSlider));
+    } else {
+      setTimeout(() => tryPosition(retries + 1), 80);
+    }
+  }
+  tryPosition();
+
+  // Also ensure correct position after full window load (fonts, CSS may affect layout)
+  window.addEventListener('load', () => {
+    updateThumbPositionFromSlider();
+    requestAnimationFrame(() => updateThumbPositionFromSlider());
+  });
+}
+
+function syncSliderWithPointer(clientX) {
+  if (!timeSlider) return;
+  const rect = timeSlider.getBoundingClientRect();
+  const clampX = Math.max(rect.left, Math.min(rect.right, clientX));
+  const pct = (clampX - rect.left) / rect.width;
+  // Reverse of log mapping used for thumb
+  const min = parseFloat(timeSlider.min) || 0.01;
+  const max = parseFloat(timeSlider.max) || 100;
+  const logMin = Math.log(min);
+  const logMax = Math.log(max);
+  const logVal = logMin + pct * (logMax - logMin);
+  const newValue = +Math.exp(logVal).toFixed(2);
+  timeSlider.value = newValue;
+  // Trigger input handler to update timeScale and labels
+  timeSlider.dispatchEvent(new Event('input', { bubbles: true }));
+  // Move thumb visually
+  updateThumbPositionFromSlider();
+}
+
 function updateDateTime() {
   const now = new Date();
 
@@ -18,8 +192,7 @@ function updateDateTime() {
   const seconds = String(now.getSeconds()).padStart(2, "0");
   timeElement.textContent = `${hours}:${minutes}:${seconds}`;
 }
-updateDateTime();
-setInterval(updateDateTime, 1000);
+// Remove real-time clock updates — use simulated clock (`simTime`) advanced inside the animate() loop
 
 const searchBtn = document.getElementById("search");
 const searchModal = document.getElementById("searchModal");
@@ -390,6 +563,9 @@ function populateAsteroidDetails(neo) {
         impactEffects.innerHTML = `
             <span class="text-xs text-gray-400">Miss distance: ${neo.miss_distance ? (neo.miss_distance / 1000).toFixed(2) + ' km' : 'N/A'}</span>
             <span class="text-xs text-gray-400">Relative velocity: ${neo.relative_velocity ? neo.relative_velocity.toFixed(2) + ' km/s' : 'N/A'}</span>
+            <button onClick="viewImpactMap(${neo.id})" class="mt-4 text-white hover:underline underline-offset-8 px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer">
+              View Impact Map
+            </button>
         `;
     }
 }
@@ -614,7 +790,17 @@ bgTexture.colorSpace = THREE.SRGBColorSpace;
 scene.background = bgTexture;
 
 // Load other planet textures
-const mercuryTexture = textureLoader.load("assets/textures/mercury.jpg");
+// Ensure mercury texture is treated as sRGB and mark when loaded
+const mercuryTexture = textureLoader.load("assets/textures/mercury.jpg", (tex) => {
+  try { tex.colorSpace = THREE.SRGBColorSpace; } catch (e) { /* fallback for older three versions */ tex.encoding = THREE.sRGBEncoding; }
+  // Make sure encoding and filters are set for correct display
+  try { tex.encoding = THREE.sRGBEncoding; } catch (e) { /* ignore */ }
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.needsUpdate = true;
+});
 const venusTexture = textureLoader.load("assets/textures/venus.jpg");
 const marsTexture = textureLoader.load("assets/textures/mars.jpg");
 const jupiterTexture = textureLoader.load("assets/textures/jupiter.jpg");
@@ -640,11 +826,11 @@ sunLight.position.set(0, 0, 0);
 scene.add(sunLight);
 
 // Ambient light to ensure all objects are visible
-const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+const ambientLight = new THREE.AmbientLight(0x404040, 7.5);
 scene.add(ambientLight);
 
 // Point light at sun position for additional illumination
-const pointLight = new THREE.PointLight(0xffffff, 1, 100000);
+const pointLight = new THREE.PointLight(0xffffff, 375000000, 0);
 pointLight.position.set(0, 0, 0);
 scene.add(pointLight);
 
@@ -711,6 +897,8 @@ const moonsData = {
 const moonMeshes = [];
 const moonLabels = [];
 const moonOrbits = [];
+// Unified list of all orbit line objects (planet, moon, NEO) so we can toggle them together
+const allOrbitLines = [];
 
 // --- Text Sprite Function ---
 function createFixedTextSprite(text, parameters = {}) {
@@ -782,6 +970,7 @@ function createMoonOrbit(planetMesh, moonDistance) {
   // Add orbit to the planet so it moves with the planet
   planetMesh.add(orbitLine);
   moonOrbits.push(orbitLine);
+  allOrbitLines.push(orbitLine);
   
   return orbitLine;
 }
@@ -981,6 +1170,9 @@ function drawInclinedOrbit(radiusAU, inclinationDeg, color = ORBIT_COLOR) {
   const line = new THREE.Line(geometry, material);
   line.frustumCulled = false;
   scene.add(line);
+  // Track planet orbit lines so they can be toggled with other orbits
+  allOrbitLines.push(line);
+  return line;
 }
 
 // --- Create planets ---
@@ -1143,6 +1335,7 @@ const neos = await load_neos();
 
 const neoMeshes = []; 
 const neoLabels = [];
+const neoOrbitLines = [];
 
 // --- Draw NEO Function ---
 function drawNEO(neoData, name, radius) {
@@ -1154,14 +1347,24 @@ function drawNEO(neoData, name, radius) {
   const M0Rad = THREE.MathUtils.degToRad(meanAnomaly);
 
   const a = semiMajorAxis * AU * scaleFactor;
+  // orbitalPeriod in Earth years (Kepler's third law with a in AU)
   const orbitalPeriod = Math.sqrt(Math.pow(semiMajorAxis, 3));
-  const meanMotion = (2 * Math.PI) / (orbitalPeriod * 365.25);
+  // Convert orbital period to seconds and compute mean motion in radians per second
+  const orbitalPeriodSeconds = orbitalPeriod * 365.25 * 24 * 60 * 60;
+  // Use same animation scale as planets (keeps visible speeds consistent)
+  const NEO_ANIMATION_SCALE = 5000;
+  const meanMotion = (2 * Math.PI) / orbitalPeriodSeconds * NEO_ANIMATION_SCALE;
 
   const neoRadius = planetScale * radius;
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(neoRadius, 16, 16),
-    new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0.9 })
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.2, transparent: true, opacity: 0.95 })
   );
+  // Force-assign the mercury texture to the material and mark for update (covers async load timing)
+  mesh.material.map = mercuryTexture;
+  // ensure texture encoding is correct on the material's map and request update
+  try { if (mesh.material.map) mesh.material.map.encoding = THREE.sRGBEncoding; } catch (e) { /* ignore */ }
+  mesh.material.needsUpdate = true;
 
   mesh.userData = { name, semiMajorAxis: a, eccentricity, inclination: incRad, longitudeOfAscendingNode: omegaRad,
     argumentOfPeriapsis: wRad, meanAnomaly: M0Rad, meanMotion, trueAnomaly: 0, orbitalPeriod };
@@ -1185,7 +1388,8 @@ function drawNEO(neoData, name, radius) {
 // --- Update NEO Position ---
 function updateNEOPosition(neoMesh, deltaTime) {
   const data = neoMesh.userData;
-  data.meanAnomaly += data.meanMotion * deltaTime * 100;
+  // meanMotion is radians per second (already scaled for animation), deltaTime is seconds
+  data.meanAnomaly += data.meanMotion * deltaTime;
   data.meanAnomaly %= (2 * Math.PI);
   
   let E = data.meanAnomaly;
@@ -1243,6 +1447,9 @@ function drawNEOOrbit(neoData, color = NEO_ORBIT_COLOR) {
   const orbitLine = new THREE.Line(geometry, material);
   orbitLine.frustumCulled = false;
   scene.add(orbitLine);
+  // Keep reference so we can toggle visibility depending on camera distance
+  neoOrbitLines.push(orbitLine);
+  allOrbitLines.push(orbitLine);
 }
 
 // --- Add NEOs to Scene ---
@@ -1253,16 +1460,18 @@ function addNEOsToScene() {
 // --- Animate function ---
 function animate() {
   const delta = clock.getDelta();
+  // Apply time scaling from UI slider
+  const scaledDelta = delta * (timeScale || 1.0);
 
-  // Rotate Earth
-  globe.rotateY(delta * 0.5);
+  // Rotate Earth (scaled)
+  globe.rotateY(scaledDelta * 0.2);
 
   const previousEarthPosition = globe.position.clone();
 
-  // Update planets with realistic orbital speeds
+  // Update planets with realistic orbital speeds (scaled)
   planetMeshes.forEach(mesh => {
     const data = mesh.userData;
-    data.angle += data.orbitSpeed * delta; // Realistic speed
+    data.angle += data.orbitSpeed * scaledDelta; // Realistic speed
     
     const orbitalRadius = data.orbitalRadius;
     const angle = data.angle;
@@ -1277,13 +1486,13 @@ function animate() {
     mesh.position.set(x, y, z);
   });
 
-  // Update NEOs
-  neoMeshes.forEach(neoMesh => updateNEOPosition(neoMesh, delta));
+  // Update NEOs (scaled)
+  neoMeshes.forEach(neoMesh => updateNEOPosition(neoMesh, scaledDelta));
 
-  // Update moons
+  // Update moons (scaled)
   moonMeshes.forEach(moon => {
     const data = moon.userData;
-    data.angle += data.orbitSpeed * delta;
+    data.angle += data.orbitSpeed * scaledDelta;
     
     // Update moon's local position relative to its parent planet
     moon.position.set(
@@ -1293,13 +1502,13 @@ function animate() {
     );
   });
 
-  // Update Earth position with realistic speed
+  // Update Earth position with realistic speed (scaled)
   if (!globe.userData.angle) {
     globe.userData.angle = 0;
     globe.userData.orbitSpeed = calculateOrbitalSpeed("Earth", 1.0);
   }
   
-  globe.userData.angle += globe.userData.orbitSpeed * delta;
+  globe.userData.angle += globe.userData.orbitSpeed * scaledDelta;
   const earthOrbitalRadius = 1.0 * AU * scaleFactor;
   const earthX = earthOrbitalRadius * Math.cos(globe.userData.angle);
   const earthZ = earthOrbitalRadius * Math.sin(globe.userData.angle);
@@ -1312,6 +1521,19 @@ function animate() {
   const earthMovement = new THREE.Vector3().subVectors(globe.position, previousEarthPosition);
   camera.position.add(earthMovement);
   controls.target.copy(globe.position);
+
+  // Toggle all orbit visibility based on camera distance to the Earth (globe):
+  // hide orbits and labels when camera is close to the globe, show when zoomed out.
+  const camDistanceToGlobe = camera.position.distanceTo(globe.position);
+  const ORBIT_VISIBILITY_MULTIPLIER = 8.0; // multiplier of earth radius used as threshold; tweak as needed
+  const showOrbits = camDistanceToGlobe > (earthRadius * ORBIT_VISIBILITY_MULTIPLIER);
+  allOrbitLines.forEach(line => {
+    if (line.visible !== showOrbits) line.visible = showOrbits;
+  });
+  // Toggle NEO and moon/planet labels together
+  neoLabels.forEach(label => { if (label.visible !== showOrbits) label.visible = showOrbits; });
+  moonLabels.forEach(label => { if (label.visible !== showOrbits) label.visible = showOrbits; });
+  planetLabels.forEach(label => { if (label.visible !== showOrbits) label.visible = showOrbits; });
 
   // Update all labels
   updateLabels(planetLabels, 3);
@@ -1329,6 +1551,23 @@ function animate() {
   });
 
   renderer.render(scene, camera);
+
+  // Advance simulated time: timeScale is interpreted as hours per real second
+  // scaledDelta is in seconds (real seconds scaled by timeScale), so advance simTime by scaledDelta * 3600 seconds
+  const hoursAdvanced = delta * (timeScale || 1.0); // hours per real second * real seconds = hours
+  const msAdvanced = hoursAdvanced * 3600 * 1000;
+  simTime = new Date(simTime.getTime() + msAdvanced);
+  // Update displayed date/time from simTime
+  if (dateElement && timeElement) {
+    const month = simTime.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    const day = String(simTime.getDate()).padStart(2, '0');
+    const year = simTime.getFullYear();
+    dateElement.textContent = `${month} ${day}, ${year}`;
+    const hours = String(simTime.getHours()).padStart(2, '0');
+    const minutes = String(simTime.getMinutes()).padStart(2, '0');
+    const seconds = String(simTime.getSeconds()).padStart(2, '0');
+    timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+  }
 }
 
 // Helper function to update labels
