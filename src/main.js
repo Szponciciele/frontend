@@ -265,6 +265,27 @@ approachesModal.addEventListener("click", (e) => {
   }
 });
 
+const aboutBtn = document.getElementById("about");
+const aboutModal = document.getElementById("aboutModal");
+const closeAboutModal = document.getElementById("closeAboutModal");
+
+aboutBtn.addEventListener("click", () => {
+  aboutModal.classList.remove("hidden");
+  aboutModal.classList.add("flex");
+});
+
+closeAboutModal.addEventListener("click", () => {
+  aboutModal.classList.add("hidden");
+  aboutModal.classList.remove("flex");
+});
+
+aboutModal.addEventListener("click", (e) => {
+  if (e.target === aboutModal) {
+    aboutModal.classList.add("hidden");
+    aboutModal.classList.remove("flex");
+  }
+});
+
 const essentialStatsBtn = document.getElementById("essentialStats");
 const orbitalStatsBtn = document.getElementById("orbitalStats");
 const impactEffectsBtn = document.getElementById("impactEffects");
@@ -611,7 +632,7 @@ function populateAsteroidDetails(neo) {
       <span class="text-xs text-gray-400">Miss distance: ${missKm ? Number(missKm).toFixed(3) + ' km' : 'N/A'}</span>
       <span class="text-xs text-gray-400">Relative velocity: ${relVel != null ? Number(relVel).toFixed(3) + ' km/s' : 'N/A'}</span>
       <span class="text-xs text-gray-400">Additional info: ${info ? String(info) : 'N/A'}</span>
-      <div class="mt-3">
+      <div class="flex justify-center mt-3">
         <button onClick="viewImpactMap(${neo.id || 'null'})" class="mt-2 text-white hover:underline underline-offset-8 px-4 py-2 rounded-md hover:bg-[--color-primary-light] transition-colors hover:cursor-pointer">View Impact Map</button>
       </div>
     `;

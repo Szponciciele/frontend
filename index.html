@@ -209,18 +209,95 @@
                 </div>
             </div>
         </div>
-        <div id="filtersModal" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
+        <div id="aboutModal" class="fixed inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
             <div class="bg-black/60 backdrop-blur-md border border-gray-600 rounded-xl p-8 w-[40rem] max-w-[90%] shadow-2xl text-gray-200">
                 <div class="flex flex-col space-y-5">
                     <div class="flex flex-row justify-between items-center">
-                        <h2 class="text-2xl font-bold tracking-wide">Filters</h2>
-                        <button id="closeFiltersModal" class="text-gray-400 hover:text-white hover:cursor-pointer transition-all duration-300 hover:scale-110">
+                        <h2 class="text-2xl font-bold tracking-wide">Impact Effects Simulator</h2>
+                        <button id="closeAboutModal" class="text-gray-400 hover:text-white hover:cursor-pointer transition-all duration-300 hover:scale-110">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
                                 <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707 l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
                             </svg>
                         </button>
                     </div>
-                    <p class="text-gray-400">TODO</p>
+                    <div class="mt-2 pr-6 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent space-y-6">
+                        <div>
+                            <p class="text-gray-300 font-semibold">Created for the 2025 NASA Space Apps Challenge</p>
+                            <p class="text-gray-400 mt-2">Interactive Impact Effects Simulator — explore an accurate, scaled 3D visualization of the inner Solar System and near-Earth objects (NEOs). Use the "Approaches" list to inspect upcoming close approaches, the Filters panel to narrow results by date, size or miss distance, and click any asteroid to open detailed orbital and impact information. NEO data is loaded from the local dataset (<code class="text-sm text-gray-300">assets/neos.json</code>) for demonstration — this visualization is for exploration and education, not real-time hazard alerts.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-200">Our Mission</h3>
+                            <p class="text-gray-400 mt-2">Meteor Madness is an interactive web-based platform designed to help users understand and prepare for potential asteroid threats. By combining NASA and USGS data with engaging visualizations and physics-based simulations, we make complex astronomical concepts accessible to everyone — scientists, policymakers, educators, and the public.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-200">How this can help humanity</h3>
+                            <p class="text-gray-400 mt-2">This platform can be used not only for education but also for practical preparedness and emergency planning. With geospatial tools and navigation data we can create shelter maps and safe zones, run impact simulations for specific regions (infrastructure damage, flood-prone areas, debris reach), and prioritize evacuations and emergency resources. In the future the system can be integrated with external sources and platforms (early warning systems, critical infrastructure databases, road networks), enabling faster, coordinated responses during real emergency situations.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-200">Key Features</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                                <div class="p-3 bg-gray-800/40 rounded-md">
+                                    <strong class="text-blue-400">Real-Time Data</strong>
+                                    <div class="text-gray-400 text-sm mt-1">Integration with NASA's NEO API for asteroid tracking and orbital data.</div>
+                                </div>
+                                <div class="p-3 bg-gray-800/40 rounded-md">
+                                    <strong class="text-blue-400">3D Visualization</strong>
+                                    <div class="text-gray-400 text-sm mt-1">Interactive 3D orbital paths and impact scenarios using Three.js.</div>
+                                </div>
+                                <div class="p-3 bg-gray-800/40 rounded-md">
+                                    <strong class="text-blue-400">Physics Simulation</strong>
+                                    <div class="text-gray-400 text-sm mt-1">Accurate impact calculations including crater size, seismic effects, and energy release.</div>
+                                </div>
+                                <div class="p-3 bg-gray-800/40 rounded-md">
+                                    <strong class="text-blue-400">Decision Support & Real-World Applications</strong>
+                                    <div class="text-gray-400 text-sm mt-1">Scenario testing and decision‑support tools to evaluate mitigation and plan emergency response.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-200">Technologies Used</h3>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">React</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">TypeScript</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">Three.js</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">D3.js</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">Node.js</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">Python</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">NASA NEO API</span>
+                                <span class="px-3 py-1 bg-gray-800/50 rounded-full text-sm font-semibold text-blue-400">USGS Data</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-200">Data Sources</h3>
+                            <div class="space-y-3 mt-3 text-gray-400 text-sm">
+                                <div>
+                                    <strong class="text-gray-200">JPL Small-Body Database (SBDB)</strong>
+                                    <div>High-precision orbital elements, ephemerides, and physical parameters from NASA JPL for asteroids and comets.</div>
+                                    <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html</a>
+                                </div>
+                                <div>
+                                    <strong class="text-gray-200">NASA Near-Earth Object (NEO) API</strong>
+                                    <div>Provides orbital parameters, size estimates, and close-approach data for asteroids and comets.</div>
+                                    <a href="https://api.nasa.gov/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">https://api.nasa.gov/</a>
+                                </div>
+                                <div>
+                                    <strong class="text-gray-200">USGS Earthquake Catalog</strong>
+                                    <div>Global earthquake data used to model seismic effects of asteroid impacts.</div>
+                                    <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">https://earthquake.usgs.gov/</a>
+                                </div>
+                                <div>
+                                    <strong class="text-gray-200">USGS National Map</strong>
+                                    <div>High-resolution elevation data for tsunami and crater formation modeling.</div>
+                                    <a href="https://www.usgs.gov/programs/national-geospatial-program" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">https://www.usgs.gov/programs/national-geospatial-program</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-200">NASA Space Apps Challenge 2025</h3>
+                            <p class="text-gray-400 mt-2">This project was created as part of the international NASA Space Apps Challenge, bringing together innovators worldwide to address real-world challenges using NASA data.</p>
+                            <a href="https://www.spaceappschallenge.org/2025/find-a-team/szponciciele/?tab=project" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline mt-2 inline-block">NASA Space Apps Project Submission Page</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
