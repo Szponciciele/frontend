@@ -16,6 +16,38 @@ let timeScale = 1.0;
 // Simulated clock (advances according to timeScale)
 let simTime = new Date();
 
+// Aktualizacja pozycji "kciuka" (thumb) na podstawie aktualnej wartości suwaka
+function updateThumbPositionFromSlider() {
+  if (!timeSlider || !timeThumb) return;
+  const minRaw = parseFloat(timeSlider.min) || 1;
+  const maxRaw = parseFloat(timeSlider.max) || 1000;
+  const val = parseFloat(timeSlider.value) || minRaw;
+  const pct = (val - minRaw) / (maxRaw - minRaw);
+  
+  // Pozycjonujemy kciuk procentowo wewnątrz kontenera
+  const sliderWidth = timeSlider.clientWidth || timeSlider.parentElement.clientWidth;
+  const thumbWidth = timeThumb.offsetWidth || 16;
+  const pos = pct * (sliderWidth - thumbWidth);
+  timeThumb.style.transform = `translateX(${Math.max(0, Math.min(pos, sliderWidth - thumbWidth))}px)`;
+}
+
+if (timeSlider) {
+  timeSlider.addEventListener('input', (e) => {
+    const rawVal = parseFloat(e.target.value);
+    
+    timeScale = sliderRawToSVal(rawVal);
+    
+    if (timeMultiplierLabel) {
+      timeMultiplierLabel.textContent = `${timeScale.toFixed(2)}x`;
+    }
+    if (timeRatioText) {
+      timeRatioText.textContent = `Skala czasu: ${timeScale.toFixed(3)}`;
+    }
+    
+    updateThumbPositionFromSlider();
+  });
+}
+
 // Map raw slider value (in slider domain) to sVal in [0.001, 1000] using log interpolation
 function sliderRawToSVal(raw) {
   if (!timeSlider) return raw;
